@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Water
+  m_Shader: {fileID: 4800000, guid: 244cb37a27e43aa4da61135c6397a766, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _CubeMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FoamTexture:
+        m_Texture: {fileID: 2800000, guid: 4f873e51222630441b34711335921a4b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: 7bcbc1a27fa4bcd4b8b908b1282acf07, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMapOne:
+        m_Texture: {fileID: 2800000, guid: 5580da2820f9fd440bd71f6bde9c6366, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMapTwo:
+        m_Texture: {fileID: 2800000, guid: f36b6624480de8e46899e3e5ef09b442, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _FoamCornerDiffusion: 5.27
+    - _FoamIntensity: 0.55
+    - _FoamLinesSpeed: 0.02
+    - _FoamSmoothness: 1.22
+    - _FoamTextureSpeedX: 0.02
+    - _FoamTextureSpeedY: 0.01
+    - _FoamThreshold: 6.34
+    - _FogThreshold: 6.07
+    - _FresnelBrightness: 1
+    - _FresnelPower: 20
+    - _FresnelPowerOpacity: 0.2
+    - _Glossiness: 0
+    - _IntersectionSmoothness: 0.12
+    - _IntersectionSmoothnessBackGround: 4.73
+    - _IntersectionThreshold: 5.5
+    - _IntersectionThresholdBackGround: 7
+    - _Metallic: 0.202
+    - _NormalBrightness: 0.7
+    - _NormalDistortionIntensity: 0.7
+    - _NormalIntensity: 0.8
+    - _NormalUVScale: 25
+    - _ScrollXSpeed: 0.04
+    - _ScrollYSpeed: 0.08
+    - _intersectionSmoothness: 0.3
+    m_Colors:
+    - _Color: {r: 0, g: 0.4722221, b: 0.5, a: 1}
+    - _ColorDeep: {r: 0, g: 0.09474983, b: 0.13207549, a: 1}
+    - _ColorLight: {r: 0.36320752, g: 0.87698346, b: 1, a: 1}
+    - _ColorLigth: {r: 0.6933962, g: 0.9231558, b: 1, a: 1}
+  m_BuildTextureStacks: []
