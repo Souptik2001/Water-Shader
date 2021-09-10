@@ -21,20 +21,26 @@ Shader "SouptikDatta/Water"
         [Header(Normal Mapping)]
         _NormalMapOne("Normal Map One", 2D) = "bump" {}
         _NormalMapTwo("Normal Map Two", 2D) = "bump" {}
-        _NormalUVScale("Normal UV Scale", Range(1, 50)) = 1
+        _NormalMapBlendingNoise("Normal Map Blending Noise", 2D) = "bump" {}
+        _NormalMapOneTwoOffsetX("_NormalMap OneTwo OffsetX", float) = 0
+        _NormalMapOneTwoOffsetY("_NormalMap OneTwo OffsetY", float) = 0
+        _NormalUVScaleOne("Normal UV Scale One", Range(1, 50)) = 1
+        _NormalUVScaleTwo("Normal UV Scale Two", Range(1, 50)) = 1
         _NormalIntensity("Normal Map Intensity", Range(0, 10)) = 1
-        _NormalDistortionIntensity("Normal Map Distortion Intensity", Range(0, 1)) = 0.2
+        _BlendStrength("Blend Strength", Range(0, 50)) = 1
+        _NormalDistortionIntensity("Normal Map Distortion Intensity", Range(0, 0.1)) = 0.02
         _NormalBrightness("Normal Brightness", Range(0, 10)) = 1
-        _ScrollXSpeed("X", Range(0,10)) = 2
-        _ScrollYSpeed("Y", Range(0,10)) = 3
+        _ScrollXSpeed("Normal X Scrolling Speed", Range(0,10)) = 2
+        _ScrollYSpeed("Normal Y Scrolling Speed", Range(0,10)) = 3
         [Header(Cube Maps)]
         _CubeMap("Cube Map", CUBE) = "white"{}
         [Header(Fresnel)]
-        _FresnelPower("Fresnel Power", Range(0.05, 20.0)) = 1
+        _FresnelPower("Fresnel Power", Range(0.05, 50.0)) = 1
         _FresnelPowerOpacity("Fresnel Power Opacity", Range(0.05, 20.0)) = 1
         _FresnelBrightness("Fresnel Brightness", Range(0, 10)) = 1
         [Header(Thresholds)]
         _IntersectionThreshold("Intersction threshold", float) = 0
+        _IntersectionThresholdUnderWater("Intersction threshold underwater", float) = 0
         _IntersectionSmoothness("Intersction Smoothness", float) = 1
         _IntersectionThresholdBackGround("Intersction threshold BackGround", float) = 0
         _IntersectionSmoothnessBackGround("Intersction Smoothness BackGround", float) = 1
@@ -46,7 +52,6 @@ Shader "SouptikDatta/Water"
     {
         Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
         Blend SrcAlpha OneMinusSrcAlpha
-        ZWrite Off
         LOD 200
 
         GrabPass{}
@@ -54,37 +59,116 @@ Shader "SouptikDatta/Water"
         // Blend One One
         Cull off
         CGPROGRAM
-        #pragma surface surf SimpleSpecular fullforwardshadows alpha:premul
+        #pragma surface surf SimpleSpecular
         // fullforwardshadows
         #pragma target 3.0
+
+        #include "UnityCG.cginc"
+
 
         UNITY_INSTANCING_BUFFER_START(Props)
         // put more per-instance properties here
         UNITY_INSTANCING_BUFFER_END(Props)
 
+
+
+        half _Metallic;
+        fixed4 _ColorLight;
+        fixed4 _ColorDeep;
+        sampler2D _NormalMapOne;
+        sampler2D _NormalMapTwo;
+        sampler2D _NormalMapBlendingNoise;
+        float _NormalMapOneTwoOffsetX;
+        float _NormalMapOneTwoOffsetY;
+        half _NormalUVScaleOne;
+        half _NormalUVScaleTwo;
+        half _NormalIntensity;
+        half _BlendStrength;
+        half _NormalDistortionIntensity;
+        half _NormalBrightness;
+        samplerCUBE _CubeMap;
+        half _FresnelPower;
+        half _FresnelPowerOpacity;
+        half _FresnelBrightness;
+        fixed _ScrollXSpeed;
+        fixed _ScrollYSpeed;
+        float _IntersectionThreshold;
+        float _IntersectionThresholdUnderWater;
+        float _IntersectionSmoothness;
+        float _FogThreshold;
+        float _FoamThreshold;
+        sampler2D _FoamTexture;
+        float4 _FoamTexture_ST;
+        float _FoamTextureSpeedX;
+        float _FoamTextureSpeedY;
+        float _FoamLinesSpeed;
+        float _FoamIntensity;
+        float _FoamSmoothness;
+        half _FoamCornerDiffusion;
+
+        // Grab Texture
+        sampler2D _GrabTexture;
+        float4 _GrabTexture_TexelSize;
+        // Grab Texture
+
         half _Glossiness;
 
-        half4 LightingSimpleSpecular(inout SurfaceOutput s, half3 lightDir, half3 viewDir, half atten) {
+        struct SurfaceOutputCustom
+        {
+            fixed3 Albedo;
+            fixed3 Normal;
+            fixed3 Emission;
+            half Specular;
+            fixed Gloss;
+            fixed Alpha;
+            fixed3 posWorld;
+        };
+
+        // Study triplanar Mapping
+        float3 TriplanarNormal(float3 worldPosition, float3 surfaceNormal) {
+            float3 normalDistribution = tex2D(_NormalMapBlendingNoise, worldPosition.xz * 0.1); // For now xz is enough as we are having a straight surface here
+            normalDistribution += tex2D(_NormalMapBlendingNoise, worldPosition.zx * 0.1); // For now xz is enough as we are having a straight surface here
+            fixed xScrollValue = _ScrollXSpeed * _Time;
+            fixed yScrollValue = _ScrollYSpeed * _Time;
+            float3 colX = UnpackNormal(tex2D(_NormalMapOne, (worldPosition.zy + float2(xScrollValue, yScrollValue)) * _NormalUVScaleOne));
+            // colX = float3(colX.xy + colX.zy, colX.z * surfaceNormal.x);
+            float3 colX2 = UnpackNormal(tex2D(_NormalMapTwo, (worldPosition.zy + float2(_NormalMapOneTwoOffsetX, _NormalMapOneTwoOffsetY) - float2(xScrollValue, yScrollValue)) * _NormalUVScaleTwo));
+            // colX2 = float3(colX2.xy + colX2.zy, colX2.z * surfaceNormal.x);
+            float3 colY = UnpackNormal(tex2D(_NormalMapOne, (worldPosition.xz + float2(xScrollValue, yScrollValue)) * _NormalUVScaleOne));
+            // colY = float3(colY.xy + colY.zy, colY.z * surfaceNormal.y);
+            float3 colY2 = UnpackNormal(tex2D(_NormalMapTwo, (worldPosition.xz + float2(_NormalMapOneTwoOffsetX, _NormalMapOneTwoOffsetY) - float2(xScrollValue, yScrollValue)) * _NormalUVScaleTwo));
+            // colY2 = float3(colY2.xy + colY2.zy, colY2.z * surfaceNormal.y);
+            float3 colZ = UnpackNormal(tex2D(_NormalMapOne, (worldPosition.xy + float2(xScrollValue, yScrollValue)) * _NormalUVScaleOne));
+            // colZ = float3(colZ.xy + colZ.zy, colZ.z * surfaceNormal.z);
+            float3 colZ2 = UnpackNormal(tex2D(_NormalMapTwo, (worldPosition.xy + float2(_NormalMapOneTwoOffsetX, _NormalMapOneTwoOffsetY) - float2(xScrollValue, yScrollValue)) * _NormalUVScaleTwo));
+            // colZ2 = float3(colZ2.xy + colZ2.zy, colZ2.z * surfaceNormal.z);
+            float3 blendWeight = pow(abs(normalize(surfaceNormal)), _BlendStrength);
+            blendWeight /= dot(blendWeight, 1);
+            float3 finalNormal = (colX.zyx + colX2.zyx) * blendWeight.x + (colY.xzy + colY2.xzy) * blendWeight.y + (colZ.xyz + colZ2.xyz) * blendWeight.z;
+            finalNormal = (colX.zyx * normalDistribution.r + colX2.zyx * normalDistribution.g) * blendWeight.x + (colY.xzy * normalDistribution.r + colY2.xzy * normalDistribution.g) * blendWeight.y + (colZ.xyz * normalDistribution.r + colZ2.xyz * normalDistribution.g) * blendWeight.z;
+            return normalize(finalNormal);
+        }
+
+        half4 LightingSimpleSpecular(inout SurfaceOutputCustom s, half3 lightDir, half3 viewDir, half atten) {
             half3 h = normalize(lightDir + viewDir);
 
-            half diff = dot(s.Normal, lightDir); // Value decrease if the light is at a greater angle
+            half diff = dot(normalize(s.Normal + TriplanarNormal(s.posWorld, s.Normal)), lightDir); // Value decrease if the light is at a greater angle
 
-            half nh = dot(s.Normal, h);
+            half nh = dot(normalize(s.Normal + TriplanarNormal(s.posWorld, s.Normal)), h);
 
             nh = saturate(nh);
+            float specAngle = acos(nh);
+            float specExponent = specAngle / _Glossiness;
             diff = saturate(diff);
             float spec;
             float distToWaterFromCam = length(viewDir);
-            spec = pow(nh, (1-exp(-50000 * distToWaterFromCam)) * 500);
+            spec = exp(- specExponent * specExponent);
 
             half4 c;
             // c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * spec) * atten;
-
-            //float specularAngle = acos(dot(normalize(lightDir - viewDir), s.Normal));
-            //float specularExponent = specularAngle / _Glossiness;
-            //float specularHighlight = exp(-specularExponent * specularExponent);
             // c.rgb = (s.Albedo * _LightColor0.rgb * pow(diff, 40) * 80 + _LightColor0.rgb * pow(diff, 200) * 1000 + _LightColor0.rgb * spec * 1) * atten;
-            c.rgb = (s.Albedo * _LightColor0.rgb * pow(diff, 85) * 40 + _LightColor0.rgb * spec * 1) * atten;
+            c.rgb = (s.Albedo * _LightColor0.rgb * diff * 2 + _LightColor0.rgb * spec) * atten;
+            // c.rgb = s.Albedo;
             c.a = s.Alpha;
 
             return c;
@@ -105,41 +189,9 @@ Shader "SouptikDatta/Water"
         };
 
 
-        half _Metallic;
-        fixed4 _ColorLight;
-        fixed4 _ColorDeep;
-        sampler2D _NormalMapOne;
-        sampler2D _NormalMapTwo;
-        half _NormalUVScale;
-        half _NormalIntensity;
-        half _NormalDistortionIntensity;
-        half _NormalBrightness;
-        samplerCUBE _CubeMap;
-        half _FresnelPower;
-        half _FresnelPowerOpacity;
-        half _FresnelBrightness;
-        fixed _ScrollXSpeed;
-        fixed _ScrollYSpeed;
-        float _IntersectionThreshold;
-        float _IntersectionSmoothness;
-        float _FogThreshold;
-        float _FoamThreshold;
-        sampler2D _FoamTexture;
-        float4 _FoamTexture_ST;
-        float _FoamTextureSpeedX;
-        float _FoamTextureSpeedY;
-        float _FoamLinesSpeed;
-        float _FoamIntensity;
-        float _FoamSmoothness;
-        half _FoamCornerDiffusion;
-
-        // Grab Texture
-        sampler2D _GrabTexture;
-        float4 _GrabTexture_TexelSize;
-        // Grab Texture
 
 
-        void surf (Input IN, inout SurfaceOutput o)
+        void surf (Input IN, inout SurfaceOutputCustom o)
         {
             // Deep Color and Light Color
 
@@ -153,14 +205,18 @@ Shader "SouptikDatta/Water"
 
             // Scrolling the UV for the normal scrolling and assigning the normal mapping
 
-            fixed xScrollValue = _ScrollXSpeed * _Time;
-            fixed yScrollValue = _ScrollYSpeed * _Time;
-            float2 calculatedUV = ((IN.uv_NormalMapOne + fixed2(xScrollValue, yScrollValue)) * _NormalUVScale)%2;
-            calculatedUV = float2(calculatedUV.x<=1 ? calculatedUV.x : 2-calculatedUV.x, calculatedUV.y <= 1 ? calculatedUV.y : 2 - calculatedUV.y);
+
+            //float2 calculatedUV = ((IN.uv_NormalMapOne + fixed2(xScrollValue, yScrollValue)) * _NormalUVScale)%2;
+            //calculatedUV = float2(calculatedUV.x<=1 ? calculatedUV.x : 2-calculatedUV.x, calculatedUV.y <= 1 ? calculatedUV.y : 2 - calculatedUV.y);
             float3 currentNormal = o.Normal;
-            o.Normal = UnpackNormalWithScale(tex2D(_NormalMapOne, calculatedUV + fixed2(xScrollValue, yScrollValue)), _NormalIntensity) * _NormalBrightness;
-            o.Normal *= UnpackNormalWithScale(tex2D(_NormalMapTwo, float2(calculatedUV.y, calculatedUV.x) + fixed2(yScrollValue, xScrollValue)), _NormalIntensity) * _NormalBrightness;
-            o.Normal *= float3(_NormalIntensity, _NormalIntensity, 1);
+            // o.Normal = UnpackNormalWithScale(tex2D(_NormalMapOne, calculatedUV + fixed2(xScrollValue, yScrollValue)), _NormalIntensity) * _NormalBrightness;
+
+
+
+
+            // o.Normal = TriplanarNormal(IN.worldPos, o.Normal);
+            // o.Normal *= UnpackNormalWithScale(tex2D(_NormalMapTwo, float2(calculatedUV.y, calculatedUV.x) + fixed2(yScrollValue, xScrollValue)), _NormalIntensity) * _NormalBrightness;
+            // o.Normal *= float3(_NormalIntensity, _NormalIntensity, 1);
 
             // Scrolling the UV for the normal scrolling and assigning the normal mapping
 
@@ -185,23 +241,6 @@ Shader "SouptikDatta/Water"
             float fogDiff = saturate((distToBottomLand - IN.screenPos.w) / _FogThreshold);
             fogDiff = pow(fogDiff, 0.5);
             float intersectionDiff = saturate((distToBottomLand - IN.screenPos.w) / _IntersectionThreshold);
-            float distToBottomLandAveraged = distToBottomLand;
-            float samplingOffset = 0.001f;
-            for (int i = 0; i < _FoamCornerDiffusion; i++) {
-                float temp = tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(IN.screenPos + float4(samplingOffset*(i+1), 0, 0, 0 ) ));
-                temp = LinearEyeDepth(temp);
-                distToBottomLandAveraged += temp;
-                temp = tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(IN.screenPos - float4(samplingOffset * (i + 1), 0, 0, 0)));
-                temp = LinearEyeDepth(temp);
-                distToBottomLandAveraged += temp;
-                temp = tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(IN.screenPos + float4(0, samplingOffset * (i + 1), 0, 0)));
-                temp = LinearEyeDepth(temp);
-                distToBottomLandAveraged += temp;
-                temp = tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(IN.screenPos - float4(0, samplingOffset * (i + 1), 0, 0)));
-                temp = LinearEyeDepth(temp);
-                distToBottomLandAveraged += temp;
-            }
-            distToBottomLandAveraged /= (_FoamCornerDiffusion * 5);
             float foamDiff = saturate((distToBottomLand - IN.screenPos.w) / _FoamThreshold);
             foamDiff = pow(foamDiff, _FoamSmoothness);
             // foamDiff *= (1.0 - rt.b);
@@ -211,9 +250,10 @@ Shader "SouptikDatta/Water"
             
             // Getting the screen space UV for the grabTexture
             
-            float2 refractionUVOffset = o.Normal.xy * _NormalDistortionIntensity;
-            // refractionUVOffset.y *= (_GrabTexture_TexelSize.z * abs(_GrabTexture_TexelSize.y));
-            float2 screenPosUV = (IN.screenPos.xy+ refractionUVOffset) / IN.screenPos.w;
+            float2 postRefractionUVOffset = normalize(IN.viewDir + normalize(normalize(o.Normal) + TriplanarNormal(IN.worldPos, o.Normal))).xy;
+            float2 refractionUVOffset = postRefractionUVOffset * _NormalDistortionIntensity;
+            refractionUVOffset.y *= (_GrabTexture_TexelSize.z * abs(_GrabTexture_TexelSize.y));
+            float2 screenPosUV = (IN.screenPos.xy + refractionUVOffset) / IN.screenPos.w;
             float distToBottomLandDistorted = tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(IN.screenPos + float4(refractionUVOffset, 0, 0)));
             // float depth = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, IN.screenPos);
             distToBottomLandDistorted = LinearEyeDepth(distToBottomLandDistorted);
@@ -229,8 +269,13 @@ Shader "SouptikDatta/Water"
                 distToBottomLandDistorted = LinearEyeDepth(distToBottomLandDistorted);
                 intersectionDiffDistorted = distToBottomLandDistorted - IN.screenPos.w;
             }
+
             float3 sampledGrabTex = tex2D(_GrabTexture, screenPosUV);
-            intersectionDiffDistorted = saturate(intersectionDiffDistorted / _IntersectionThreshold);
+            if (dot(o.Normal, IN.viewDir) < 0) {
+                intersectionDiffDistorted = saturate(intersectionDiffDistorted / (_IntersectionThresholdUnderWater / pow(IN.screenPos.w, 0.2)));
+            }else{
+                intersectionDiffDistorted = saturate(intersectionDiffDistorted / _IntersectionThreshold);
+            }
             float grabTexFogFactor = (1 - pow(intersectionDiffDistorted, _IntersectionSmoothness));
             
 
@@ -250,30 +295,34 @@ Shader "SouptikDatta/Water"
             
             // Applying the albedo (we only apply the depth colored albedo here because the uderwater should not be affected by the sunlight and albedo is infact affected by sunlight... so we apply the grabtexture in the emission channel)
             
+            o.posWorld = IN.worldPos;
             o.Albedo.rgb = prevPlusDepthAlbedo;
             // o.Albedo.rgb = pow(intersectionDiff, _IntersectionSmoothness); // Uncomment this for seeing the depth texture mask
             // o.Metallic = _Metallic;
             // o.Smoothness = _Glossiness;
-            o.Alpha = pow(intersectionDiffDistorted, _IntersectionSmoothness) * pow(rim, _FresnelPowerOpacity);
+            // o.Alpha = pow(intersectionDiffDistorted, _IntersectionSmoothness) * pow(rim, _FresnelPowerOpacity);
             o.Alpha = 1;
 
             // Applying the albedo
-            
+
 
             // Computing the foam
             
             float foamTex = tex2D(_FoamTexture, IN.worldPos.xz * _FoamTexture_ST.xy + _Time.y * float2(_FoamTextureSpeedX, _FoamTextureSpeedY));
-            float foam = step(foamDiff - (saturate(sin((foamDiff - _Time.y * _FoamLinesSpeed) * 8 * UNITY_PI)) * (1.0 - foamDiff)), foamTex);
-            float intensityAtThisPoint = foamDiff - (saturate(sin((foamDiff - _Time.y * _FoamLinesSpeed) * 8 * UNITY_PI)) * (1.0 - foamDiff));
+            float foam = step(foamDiff - (saturate(sin((foamDiff - _Time.y * _FoamLinesSpeed) * 10 * UNITY_PI)) * (1.0 - foamDiff)), foamTex);
+            float intensityAtThisPoint = foamDiff - (saturate(sin((foamDiff - _Time.y * _FoamLinesSpeed) * 10 * UNITY_PI)) * (1.0 - foamDiff));
             // o.Albedo.rgb = foamDiff - (saturate(sin((foamDiff - _Time.y * _FoamLinesSpeed) * 8 * UNITY_PI)) * (1.0 - foamDiff));
 
             // Computing the foam 
             
-            // o.Albedo.rgb = intensityAtThisPoint;
             
             // Applying the foam here (and also the GrabTexture for underwater seen)
 
-            o.Emission = (prevPlusGrabAlbedo) + foam * _FoamIntensity * (1-fogDiff);
+             // o.Albedo = 1;
+            // o.Albedo = TriplanarNormal(IN.worldPos, o.Normal);
+
+            o.Emission = (prevPlusGrabAlbedo) + foam * foamTex * _FoamIntensity;
+
 
             // Applying the foam here (and also the GrabTexture for underwater seen)
         }
@@ -282,7 +331,6 @@ Shader "SouptikDatta/Water"
 
         //Pass{
         //    Blend One Zero
-        //    ZWrite Off
         //    Tags {"Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent"}
         //    CGPROGRAM
         //    #pragma alpha:premul

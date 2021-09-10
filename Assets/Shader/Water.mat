@@ -35,6 +35,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 7bcbc1a27fa4bcd4b8b908b1282acf07, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NormalMapBlendingNoise:
+        m_Texture: {fileID: 2800000, guid: cfeeebfb31d114c4f8c8bff298101f37, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _NormalMapOne:
         m_Texture: {fileID: 2800000, guid: 5580da2820f9fd440bd71f6bde9c6366, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -45,29 +49,35 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _BlendStrength: 9.4
     - _FoamCornerDiffusion: 5.27
-    - _FoamIntensity: 0.55
-    - _FoamLinesSpeed: 0.02
-    - _FoamSmoothness: 1.22
-    - _FoamTextureSpeedX: 0.02
-    - _FoamTextureSpeedY: 0.01
-    - _FoamThreshold: 6.34
-    - _FogThreshold: 6.07
+    - _FoamIntensity: 1.37
+    - _FoamLinesSpeed: 0.16
+    - _FoamSmoothness: 0.55
+    - _FoamTextureSpeedX: 0.1
+    - _FoamTextureSpeedY: 0.06
+    - _FoamThreshold: 0.15
+    - _FogThreshold: 0.8
     - _FresnelBrightness: 1
     - _FresnelPower: 20
-    - _FresnelPowerOpacity: 0.2
-    - _Glossiness: 0
+    - _FresnelPowerOpacity: 0.05
+    - _Glossiness: 0.05
     - _IntersectionSmoothness: 0.12
     - _IntersectionSmoothnessBackGround: 4.73
     - _IntersectionThreshold: 5.5
     - _IntersectionThresholdBackGround: 7
+    - _IntersectionThresholdUnderWater: 12.5
     - _Metallic: 0.202
     - _NormalBrightness: 0.7
-    - _NormalDistortionIntensity: 0.7
-    - _NormalIntensity: 0.8
-    - _NormalUVScale: 25
-    - _ScrollXSpeed: 0.04
-    - _ScrollYSpeed: 0.08
+    - _NormalDistortionIntensity: 0.03
+    - _NormalIntensity: 0
+    - _NormalMapOneTwoOffsetX: 0.06
+    - _NormalMapOneTwoOffsetY: 0
+    - _NormalUVScale: 1
+    - _NormalUVScaleOne: 1
+    - _NormalUVScaleTwo: 2
+    - _ScrollXSpeed: 0.5
+    - _ScrollYSpeed: 0.25
     - _intersectionSmoothness: 0.3
     m_Colors:
     - _Color: {r: 0, g: 0.4722221, b: 0.5, a: 1}
