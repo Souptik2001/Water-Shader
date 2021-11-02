@@ -1,9 +1,15 @@
 // Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+
 Shader "SouptikDatta/Water"
 {
     Properties
     {
+        [Header(Ripples)]
+        _WaveA("Wave A (dir, steepness, wavelength)", Vector) = (1,0,0.5,10)
+        _WaveB("Wave B", Vector) = (0,1,0.25,20)
+        _WaveC("Wave C", Vector) = (1,1,0.15,10)
         [Header(Colors)]
         _ColorLight ("Color Light", Color) = (1,1,1,1)
         _ColorDeep ("Color Deep", Color) = (1,1,1,1)
@@ -59,7 +65,7 @@ Shader "SouptikDatta/Water"
         // Blend One One
         Cull off
         CGPROGRAM
-        #pragma surface surf SimpleSpecular
+        #pragma surface surf SimpleSpecular vertex:disp addshadow
         // fullforwardshadows
         #pragma target 3.0
 
@@ -118,7 +124,7 @@ Shader "SouptikDatta/Water"
             fixed3 Albedo;
             fixed3 Normal;
             fixed3 Emission;
-            half Specular;
+            float3 Specular;
             fixed Gloss;
             fixed Alpha;
             fixed3 posWorld;
@@ -149,7 +155,37 @@ Shader "SouptikDatta/Water"
             return normalize(finalNormal);
         }
 
+
+
+
+
         half4 LightingSimpleSpecular(inout SurfaceOutputCustom s, half3 lightDir, half3 viewDir, half atten) {
+            //half3 h = normalize(lightDir + viewDir);
+
+            //half diff = dot(normalize(s.Normal + TriplanarNormal(s.posWorld, s.Normal)), lightDir); // Value decrease if the light is at a greater angle
+
+            //half nh = dot(normalize(s.Normal + TriplanarNormal(s.posWorld, s.Normal)), h);
+
+            //nh = saturate(nh);
+            //float specAngle = acos(nh);
+            //float specExponent = specAngle / _Glossiness;
+            //diff = saturate(diff);
+            //float spec;
+            //float distToWaterFromCam = length(viewDir);
+            //spec = exp(- specExponent * specExponent);
+
+            //half4 c;
+            //// c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * spec) * atten;
+            //// c.rgb = (s.Albedo * _LightColor0.rgb * pow(diff, 40) * 80 + _LightColor0.rgb * pow(diff, 200) * 1000 + _LightColor0.rgb * spec * 1) * atten;
+            //// c.rgb = (s.Albedo * _LightColor0.rgb * diff * 2 + _LightColor0.rgb * spec + s.Specular*specAngle) * atten;
+            //c.rgb = (s.Albedo * _LightColor0.rgb * diff * 2 + _LightColor0.rgb * spec) * atten;
+            //// c.rgb = s.Specular*specAngle;
+            //// c.rgb = s.Albedo;
+            //c.a = s.Alpha;
+
+            //return c;
+
+
             half3 h = normalize(lightDir + viewDir);
 
             half diff = dot(normalize(s.Normal + TriplanarNormal(s.posWorld, s.Normal)), lightDir); // Value decrease if the light is at a greater angle
@@ -162,7 +198,7 @@ Shader "SouptikDatta/Water"
             diff = saturate(diff);
             float spec;
             float distToWaterFromCam = length(viewDir);
-            spec = exp(- specExponent * specExponent);
+            spec = exp(-specExponent * specExponent);
 
             half4 c;
             // c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * spec) * atten;
@@ -189,6 +225,76 @@ Shader "SouptikDatta/Water"
         };
 
 
+
+        struct appdata {
+            float4 vertex : POSITION;
+            float4 tangent : TANGENT;
+            float3 normal : NORMAL;
+            float2 texcoord : TEXCOORD0;
+        };
+
+
+        struct Octave
+        {
+            float2 speed;
+            float2 scale;
+            float height;
+            int alternate;
+            int enabled;
+        };
+
+
+        float4 _WaveA;
+        float4 _WaveB;
+        float4 _WaveC;
+
+        float3 GerstnerWave(
+            float4 wave, float3 worldPos, inout float3 tangent, inout float3 binormal
+        ) {
+            float steepness = wave.z;
+            float wavelength = wave.w;
+            float k = 2 * UNITY_PI / wavelength;
+            float c = sqrt(9.8 / k);
+            float2 d = normalize(wave.xy);
+            float f = k * (dot(d, worldPos.xz) - c * _Time.y);
+            float a = steepness / k;
+
+            //p.x += d.x * (a * cos(f));
+            //p.y = a * sin(f);
+            //p.z += d.y * (a * cos(f));
+
+            tangent += float3(
+                -d.x * d.x * (steepness * sin(f)),
+                d.x * (steepness * cos(f)),
+                -d.x * d.y * (steepness * sin(f))
+                );
+            binormal += float3(
+                -d.x * d.y * (steepness * sin(f)),
+                d.y * (steepness * cos(f)),
+                -d.y * d.y * (steepness * sin(f))
+                );
+            return float3(
+                d.x * (a * cos(f)),
+                a * sin(f),
+                d.y * (a * cos(f))
+                );
+        }
+
+
+        void disp(inout appdata v)
+        {
+            float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+            float3 gridPoint = worldPos.xyz;
+            float3 tangent = float3(1, 0, 0);
+            float3 binormal = float3(0, 0, 1);
+            float3 p = v.vertex.xyz;
+            p += GerstnerWave(_WaveA, gridPoint, tangent, binormal);
+            p += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
+            p += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
+            float3 normal = normalize(cross(binormal, tangent));
+            v.vertex.xyz = p;
+            v.normal = normal;
+        }
 
 
         void surf (Input IN, inout SurfaceOutputCustom o)
@@ -222,7 +328,7 @@ Shader "SouptikDatta/Water"
 
             // Fresnel Effect
 
-            float dotProduct = dot(normalize(IN.viewDir), o.Normal);
+            float dotProduct = dot(normalize(IN.viewDir), o.Normal+ TriplanarNormal(IN.worldPos, o.Normal));
             half rim = 1 - min(0.2, saturate(dotProduct < 0 ? -dotProduct : dotProduct));
             half opacityRim = 1 - min(0.2, saturate(dotProduct < 0 ? -dotProduct : dotProduct));
 
@@ -232,7 +338,7 @@ Shader "SouptikDatta/Water"
             
             float distToBottomLand = tex2Dproj(_CameraDepthTexture, UNITY_PROJ_COORD(IN.screenPos));
             // float depth = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, IN.screenPos);
-            distToBottomLand = LinearEyeDepth(distToBottomLand);
+            distToBottomLand = LinearEyeDepth(distToBottomLand) * length(IN.viewDir);
 
             // Using the camera's depth texture to get the distToBottomLand from the camera
 
@@ -304,6 +410,15 @@ Shader "SouptikDatta/Water"
             o.Alpha = 1;
 
             // Applying the albedo
+
+
+            // Calculating The world reflection
+            
+            float3 reflectionDir = reflect(-IN.viewDir, o.Normal);
+            float4 envSample = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectionDir);
+            // o.Specular = DecodeHDR(envSample, unity_SpecCube0_HDR);
+             
+            // Calculating the world reflection
 
 
             // Computing the foam
@@ -413,6 +528,6 @@ Shader "SouptikDatta/Water"
         //    ENDCG
         //}
     }
-    // FallBack "Diffuse"
-    FallBack Off
+    FallBack "Diffuse"
+    // FallBack Off
 }

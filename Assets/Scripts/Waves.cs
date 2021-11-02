@@ -22,8 +22,20 @@ public class Waves : MonoBehaviour
     private float prevLOD;
     private float prevUVScale;
 
+    [Header("Underwater shader data")]
+    public float waterDepth;
+    public Shader underwaterShader;
+    UnderWater underWaterScript;
+
     void Start()
     {
+        //if (camera != null)
+        //{
+        //    underWaterScript = camera.gameObject.AddComponent<UnderWater>();
+        //    underWaterScript.underwaterShader = underwaterShader;
+        //    underWaterScript.waveScript = this;
+        //}
+        //else { Debug.LogError("Please assign the camera to see the underwater effect."); }
         InitializeWaterTopMesh();
         GenerateWaterTopMesh();;
         prevDimensions = Dimensions;
@@ -123,7 +135,7 @@ public class Waves : MonoBehaviour
             prevLOD = LOD;
             prevUVScale = UVScale;
         }
-        ApplyOctaves();
+        // ApplyOctaves();
     }
 
     private void ApplyOctaves()
@@ -168,4 +180,68 @@ public class Waves : MonoBehaviour
         public bool alternate;
         public bool enabled;
     }
+
+
+    // Vector2 - Height, OutOfBoundary
+    public Vector2 getHeight(Vector3 pos)
+    {
+        Vector3 scale = new Vector3(1 / transform.lossyScale.x, 0, 1 / transform.lossyScale.z);
+        Vector3 localPos = Vector3.Scale(pos - transform.position, scale);
+        localPos += new Vector3(LOD, 0, LOD);
+        localPos = localPos / (1 - LOD);
+        if(localPos.x < 0 || localPos.z < 0 || localPos.x > Dimensions || localPos.z > Dimensions)
+        {
+            return new Vector2(0, 1);
+        }
+        int XFloorVal = Mathf.FloorToInt(localPos.x);
+        int XCeilVal = Mathf.CeilToInt(localPos.x);
+        int ZFloorVal = Mathf.FloorToInt(localPos.z);
+        int ZCeilVal = Mathf.CeilToInt(localPos.z);
+        Vector2 bl = new Vector2(Mathf.FloorToInt(localPos.x), Mathf.FloorToInt(localPos.z));
+        Vector2 br = new Vector2(Mathf.CeilToInt(localPos.x), Mathf.FloorToInt(localPos.z));
+        Vector2 tl = new Vector2(Mathf.FloorToInt(localPos.x), Mathf.CeilToInt(localPos.z));
+        Vector2 tr = new Vector2(Mathf.CeilToInt(localPos.x), Mathf.CeilToInt(localPos.z));
+        var verts = mesh.vertices;
+        float i1 = Mathf.Lerp(verts[generateIndex((int)bl.x, (int)bl.y)].y, verts[generateIndex((int)br.x, (int)br.y)].y, ((XCeilVal - XFloorVal) - (XCeilVal-localPos.x))/(XCeilVal - XFloorVal));
+        float i2 = Mathf.Lerp(verts[generateIndex((int)tl.x, (int)tl.y)].y, verts[generateIndex((int)tr.x, (int)tr.y)].y, ((XCeilVal - XFloorVal) - (XCeilVal - localPos.x)) / (XCeilVal - XFloorVal));
+        float height = Mathf.Lerp(i1, i2, ((ZCeilVal - ZFloorVal) - (ZCeilVal - localPos.z)) / (ZCeilVal - ZFloorVal));
+        return new Vector2(height, 0);
+    }
+    public Vector2 getBoxHeight()
+    {
+        if(camera!=null) return getHeight(camera.transform.position + camera.transform.forward * 0.01f);
+        return new Vector2(0, 1);
+    }
+
+
+     public Vector3 getBoundingBox()
+    {
+        float height = waterDepth;
+        return new Vector3((Dimensions - Dimensions*LOD) * transform.lossyScale.x, height, (Dimensions - Dimensions*LOD) * transform.lossyScale.z);
+        // return new Vector3(transform.lossyScale.x, height, transform.lossyScale.z);
+    }
+
+    //private void OnDrawGizmosSelected()
+    //{
+    //    Gizmos.color = Color.green;
+    //    //Vector3 boxSize = getBoundingBox();
+    //    //Vector3 lowerBound = transform.position - new Vector3(LOD, boxSize.y, LOD);
+    //    //if (camera != null)
+    //    //{
+    //    //    Vector2 extraHeight = getHeight(camera.gameObject.transform.position);
+    //    //    if (extraHeight.y == 1) { return; }
+    //    //    lowerBound += new Vector3(0, extraHeight.x, 0);
+    //    //    Gizmos.DrawCube(transform.position + boxSize / 2 - new Vector3(LOD, boxSize.y, LOD) + new Vector3(0, extraHeight.x, 0), boxSize);
+    //    //}
+    //    //else
+    //    //{
+    //    //    Debug.LogError("Please assign the camera objecct in inspector for dynamic underwater bounding box");
+    //    //}
+    //    Vector3 boxSize = getBoundingBox();
+    //    Vector3 lowerBound = transform.position - new Vector3(LOD, boxSize.y/2, LOD);
+    //    Vector2 extraHeight = getBoxHeight();
+    //    if (extraHeight.y == 1) {  return; }
+    //    Gizmos.DrawCube(lowerBound + new Vector3(boxSize.x / 2, 0, boxSize.z / 2), boxSize+new Vector3(0, extraHeight.x, 0));
+    //}
+
 }
