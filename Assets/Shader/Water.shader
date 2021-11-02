@@ -7,9 +7,9 @@ Shader "SouptikDatta/Water"
     Properties
     {
         [Header(Ripples)]
-        _WaveA("Wave A (dir, steepness, wavelength)", Vector) = (1,0,0.5,10)
-        _WaveB("Wave B", Vector) = (0,1,0.25,20)
-        _WaveC("Wave C", Vector) = (1,1,0.15,10)
+        _Wave0("Wave A (dir, steepness, wavelength)", Vector) = (1,0,0.5,10)
+        _Wave1("Wave B", Vector) = (0,1,0.25,20)
+        _Wave2("Wave C", Vector) = (1,1,0.15,10)
         [Header(Colors)]
         _ColorLight ("Color Light", Color) = (1,1,1,1)
         _ColorDeep ("Color Deep", Color) = (1,1,1,1)
@@ -244,9 +244,9 @@ Shader "SouptikDatta/Water"
         };
 
 
-        float4 _WaveA;
-        float4 _WaveB;
-        float4 _WaveC;
+        float4 _Wave0;
+        float4 _Wave1;
+        float4 _Wave2;
 
         float3 GerstnerWave(
             float4 wave, float3 worldPos, inout float3 tangent, inout float3 binormal
@@ -288,9 +288,9 @@ Shader "SouptikDatta/Water"
             float3 tangent = float3(1, 0, 0);
             float3 binormal = float3(0, 0, 1);
             float3 p = v.vertex.xyz;
-            p += GerstnerWave(_WaveA, gridPoint, tangent, binormal);
-            p += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
-            p += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
+            p += GerstnerWave(_Wave0, gridPoint, tangent, binormal);
+            p += GerstnerWave(_Wave1, gridPoint, tangent, binormal);
+            p += GerstnerWave(_Wave2, gridPoint, tangent, binormal);
             float3 normal = normalize(cross(binormal, tangent));
             v.vertex.xyz = p;
             v.normal = normal;

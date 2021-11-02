@@ -54,10 +54,10 @@ Material:
     - _FoamCornerDiffusion: 5.27
     - _FoamIntensity: 1.37
     - _FoamLinesSpeed: 0.16
-    - _FoamSmoothness: 0.55
+    - _FoamSmoothness: 0.15
     - _FoamTextureSpeedX: 0.1
     - _FoamTextureSpeedY: 0.06
-    - _FoamThreshold: 0.15
+    - _FoamThreshold: 0.7
     - _FogThreshold: 0.8
     - _FresnelBrightness: 1
     - _FresnelPower: 20
@@ -86,8 +86,11 @@ Material:
     m_Colors:
     - _Color: {r: 0, g: 0.4722221, b: 0.5, a: 1}
     - _ColorDeep: {r: 0, g: 0.2316458, b: 0.3773585, a: 1}
-    - _ColorLight: {r: 0, g: 0.9093275, b: 1, a: 1}
+    - _ColorLight: {r: 0, g: 0.59243166, b: 0.6509434, a: 1}
     - _ColorLigth: {r: 0.6933962, g: 0.9231558, b: 1, a: 1}
+    - _Wave0: {r: -4.71, g: 14.25, b: 0.05, a: 5}
+    - _Wave1: {r: 1, g: 0, b: 0.03, a: 5}
+    - _Wave2: {r: 1, g: 2, b: 0.03, a: 5}
     - _WaveA: {r: 0.3, g: -0.51, b: 0.05, a: 20}
     - _WaveB: {r: 4.26, g: 9.4, b: 0.08, a: 7}
     - _WaveC: {r: 1, g: 1, b: 0, a: 10}

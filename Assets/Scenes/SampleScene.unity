@@ -342,9 +342,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63e20e25c941c6544ae9f919aa7f32e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
+  rb: {fileID: 268433240}
+  underwaterDrag: 1
+  underwaterAngularDrag: 0.5
   depthBeforeSubmerged: 1
   displacementAmount: 3
+  floaters: 1
 --- !u!1 &376255023
 GameObject:
   m_ObjectHideFlags: 0
@@ -576,7 +579,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 656472368}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -29, y: 0, z: -29}
+  m_LocalPosition: {x: -29, y: -3.94, z: -29}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -853,7 +856,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1132030917}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.21, y: 3.94, z: -10.08}
+  m_LocalPosition: {x: -2.21, y: 0, z: -10.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1286050044}
@@ -1041,9 +1044,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63e20e25c941c6544ae9f919aa7f32e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
+  rb: {fileID: 1159399974}
+  underwaterDrag: 1
+  underwaterAngularDrag: 0.5
   depthBeforeSubmerged: 1
   displacementAmount: 3
+  floaters: 1
 --- !u!1 &1182917983
 GameObject:
   m_ObjectHideFlags: 0
@@ -1204,6 +1210,62 @@ ReflectionProbe:
   m_UseOcclusionCulling: 1
   m_Importance: 1
   m_CustomBakedTexture: {fileID: 0}
+--- !u!1 &1428683325
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1428683327}
+  - component: {fileID: 1428683326}
+  m_Layer: 0
+  m_Name: WaveManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1428683326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1428683325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee42428857061a04d8fc36dbd28c1332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  material:
+  - {fileID: 2100000, guid: cb7c2b45f277eac488bc48df878fc0a4, type: 2}
+  allWaves:
+  - waveProperties:
+    - direction: {x: -4.71, y: 14.25}
+      steepness: 0.05
+      wavelength: 5
+    - direction: {x: 1, y: 0}
+      steepness: 0.03
+      wavelength: 5
+    - direction: {x: 1, y: 2}
+      steepness: 0.03
+      wavelength: 5
+--- !u!4 &1428683327
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1428683325}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.1486945, y: 2.4334006, z: 0.9816867}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1671405762
 GameObject:
   m_ObjectHideFlags: 0
