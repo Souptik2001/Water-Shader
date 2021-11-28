@@ -6,14 +6,13 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer))]
 public class Waves : MonoBehaviour
 {
-    public Camera camera;
-    public bool centerPivot=true;
+    public bool centerPivot = true;
     [Range(1, 500)]
     public int Dimensions = 10;
     public Material waterTopMaterial;
-    public Octave[] octaves;
+    private Octave[] octaves; // This actually is no longer required
     [Range(0, 0.9f)]
-    public float LOD=0f;
+    public float LOD = 0f;
     [Range(0, 1)]
     public float UVScale = 0f;
     private MeshFilter meshFilter;
@@ -25,7 +24,8 @@ public class Waves : MonoBehaviour
     [Header("Underwater shader data")]
     public float waterDepth;
     public Shader underwaterShader;
-    UnderWater underWaterScript;
+    [HideInInspector]
+    public Camera cam_main;
 
     void Start()
     {
@@ -37,7 +37,7 @@ public class Waves : MonoBehaviour
         //}
         //else { Debug.LogError("Please assign the camera to see the underwater effect."); }
         InitializeWaterTopMesh();
-        GenerateWaterTopMesh();;
+        GenerateWaterTopMesh(); ;
         prevDimensions = Dimensions;
         prevLOD = LOD;
         prevUVScale = UVScale;
@@ -47,7 +47,7 @@ public class Waves : MonoBehaviour
     {
         meshFilter = gameObject.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = gameObject.GetComponent<MeshRenderer>();
-        if(waterTopMaterial!=null && meshRenderer!=null) meshRenderer.material = waterTopMaterial;
+        if (waterTopMaterial != null && meshRenderer != null) meshRenderer.material = waterTopMaterial;
     }
 
     private void GenerateWaterTopMesh()
@@ -68,12 +68,12 @@ public class Waves : MonoBehaviour
     private Vector2[] GenerateUV()
     {
         Vector2[] uvs = new Vector2[mesh.vertices.Length];
-        for(int i=0; i<=Dimensions; i++)
+        for (int i = 0; i <= Dimensions; i++)
         {
-            for(int j=0; j<=Dimensions; j++)
+            for (int j = 0; j <= Dimensions; j++)
             {
-                Vector2 uv = new Vector2(((float)(i)/(float)(Dimensions))%2f, ((float)(j)/(float)(Dimensions))%2f);
-                uvs[generateIndex(i, j)] = new Vector2(uv.x<=1 ? uv.x : 2-uv.x, uv.y<=1 ? uv.y : 2-uv.y);
+                Vector2 uv = new Vector2(((float)(i) / (float)(Dimensions)) % 2f, ((float)(j) / (float)(Dimensions)) % 2f);
+                uvs[generateIndex(i, j)] = new Vector2(uv.x <= 1 ? uv.x : 2 - uv.x, uv.y <= 1 ? uv.y : 2 - uv.y);
             }
         }
         return uvs;
@@ -83,17 +83,17 @@ public class Waves : MonoBehaviour
     {
         // var tries = new int[mesh.vertices.Length * 6];
         var tries = new int[Dimensions * Dimensions * 6];
-        for (int i=0; i<Dimensions; i++)
+        for (int i = 0; i < Dimensions; i++)
         {
-            for(int j=0; j<Dimensions; j++)
+            for (int j = 0; j < Dimensions; j++)
             {
                 int firstIndex = (i * Dimensions) + j;
                 int offsetVal = (firstIndex * 6) - 1;
                 tries[offsetVal + 1] = generateIndex(i, j);
-                tries[offsetVal + 2] = generateIndex(i+1, j+1);
-                tries[offsetVal + 3] = generateIndex(i+1, j);
-                tries[offsetVal + 4] = generateIndex(i, j+1);
-                tries[offsetVal + 5] = generateIndex(i+1, j+1);
+                tries[offsetVal + 2] = generateIndex(i + 1, j + 1);
+                tries[offsetVal + 3] = generateIndex(i + 1, j);
+                tries[offsetVal + 4] = generateIndex(i, j + 1);
+                tries[offsetVal + 5] = generateIndex(i + 1, j + 1);
                 tries[offsetVal + 6] = generateIndex(i, j);
             }
         }
@@ -103,17 +103,17 @@ public class Waves : MonoBehaviour
     private Vector3[] GenerateVertices()
     {
         var verts = new Vector3[(Dimensions + 1) * (Dimensions + 1)];
-        for(int i=0; i<=Dimensions; i++)
+        for (int i = 0; i <= Dimensions; i++)
         {
-            for(int j=0; j<=Dimensions; j++)
+            for (int j = 0; j <= Dimensions; j++)
             {
                 if (centerPivot)
                 {
-                    verts[generateIndex(i, j)] = new Vector3(i - (LOD * (i + 1)) - ((1-LOD) * (float)(Dimensions))/2, 0, j - (LOD * (j + 1)) - ((1 - LOD) * (float)(Dimensions)) / 2); // This is wrong
+                    verts[generateIndex(i, j)] = new Vector3(i - (LOD * (i + 1)) - ((1 - LOD) * (float)(Dimensions)) / 2, 0, j - (LOD * (j + 1)) - ((1 - LOD) * (float)(Dimensions)) / 2); // This is wrong
                 }
                 else
                 {
-                    verts[generateIndex(i, j)] = new Vector3(i-(LOD * (i+1)), 0, j-(LOD * (j+1)));
+                    verts[generateIndex(i, j)] = new Vector3(i - (LOD * (i + 1)), 0, j - (LOD * (j + 1)));
                 }
             }
         }
@@ -123,11 +123,12 @@ public class Waves : MonoBehaviour
     private int generateIndex(int i, int j)
     {
         return (i * (Dimensions + 1)) + j;
-;    }
+        ;
+    }
 
     void Update()
     {
-        if (camera != null) { camera.depthTextureMode = DepthTextureMode.Depth; } else { Debug.LogError("Please assign the camera to get the depth texture"); }
+        if (cam_main != null) { cam_main.depthTextureMode = DepthTextureMode.Depth; } else { Debug.LogError("Please assign the camera to get the depth texture"); }
         if (prevDimensions != Dimensions || prevLOD != LOD || prevUVScale != UVScale)
         {
             GenerateWaterTopMesh();
@@ -189,7 +190,7 @@ public class Waves : MonoBehaviour
         Vector3 localPos = Vector3.Scale(pos - transform.position, scale);
         localPos += new Vector3(LOD, 0, LOD);
         localPos = localPos / (1 - LOD);
-        if(localPos.x < 0 || localPos.z < 0 || localPos.x > Dimensions || localPos.z > Dimensions)
+        if (localPos.x < 0 || localPos.z < 0 || localPos.x > Dimensions || localPos.z > Dimensions)
         {
             return new Vector2(0, 1);
         }
@@ -202,22 +203,22 @@ public class Waves : MonoBehaviour
         Vector2 tl = new Vector2(Mathf.FloorToInt(localPos.x), Mathf.CeilToInt(localPos.z));
         Vector2 tr = new Vector2(Mathf.CeilToInt(localPos.x), Mathf.CeilToInt(localPos.z));
         var verts = mesh.vertices;
-        float i1 = Mathf.Lerp(verts[generateIndex((int)bl.x, (int)bl.y)].y, verts[generateIndex((int)br.x, (int)br.y)].y, ((XCeilVal - XFloorVal) - (XCeilVal-localPos.x))/(XCeilVal - XFloorVal));
+        float i1 = Mathf.Lerp(verts[generateIndex((int)bl.x, (int)bl.y)].y, verts[generateIndex((int)br.x, (int)br.y)].y, ((XCeilVal - XFloorVal) - (XCeilVal - localPos.x)) / (XCeilVal - XFloorVal));
         float i2 = Mathf.Lerp(verts[generateIndex((int)tl.x, (int)tl.y)].y, verts[generateIndex((int)tr.x, (int)tr.y)].y, ((XCeilVal - XFloorVal) - (XCeilVal - localPos.x)) / (XCeilVal - XFloorVal));
         float height = Mathf.Lerp(i1, i2, ((ZCeilVal - ZFloorVal) - (ZCeilVal - localPos.z)) / (ZCeilVal - ZFloorVal));
         return new Vector2(height, 0);
     }
     public Vector2 getBoxHeight()
     {
-        if(camera!=null) return getHeight(camera.transform.position + camera.transform.forward * 0.01f);
+        if (cam_main != null) return getHeight(cam_main.transform.position + cam_main.transform.forward * 0.01f);
         return new Vector2(0, 1);
     }
 
 
-     public Vector3 getBoundingBox()
+    public Vector3 getBoundingBox()
     {
         float height = waterDepth;
-        return new Vector3((Dimensions - Dimensions*LOD) * transform.lossyScale.x, height, (Dimensions - Dimensions*LOD) * transform.lossyScale.z);
+        return new Vector3((Dimensions - Dimensions * LOD) * transform.lossyScale.x, height, (Dimensions - Dimensions * LOD) * transform.lossyScale.z);
         // return new Vector3(transform.lossyScale.x, height, transform.lossyScale.z);
     }
 

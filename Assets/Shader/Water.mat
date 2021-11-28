@@ -24,7 +24,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _FoamTexture:
-        m_Texture: {fileID: 2800000, guid: 4f873e51222630441b34711335921a4b, type: 3}
+        m_Texture: {fileID: 2800000, guid: 95361f591149d9b4b9a9251b12f9995d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -47,25 +47,41 @@ Material:
         m_Texture: {fileID: 2800000, guid: f36b6624480de8e46899e3e5ef09b442, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _WaterWakeFoamNormalOne:
+        m_Texture: {fileID: 2800000, guid: 08fde92185903044fac57ab12ef954ca, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaterWakeFoamNormalTwo:
+        m_Texture: {fileID: 2800000, guid: ff59c563e995adf4796665947ef335f1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaterWakeFoamTexOne:
+        m_Texture: {fileID: 2800000, guid: d322db1293def8f4f8351f730ac8ca1a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaterWakeFoamTexTwo:
+        m_Texture: {fileID: 2800000, guid: 1dd289b81d2980d4cb22b57c3b2e278d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Amplitude: 1
     - _BlendStrength: 9.4
-    - _FoamCornerDiffusion: 5.27
-    - _FoamIntensity: 1.37
-    - _FoamLinesSpeed: 0.16
-    - _FoamSmoothness: 0.15
-    - _FoamTextureSpeedX: 0.1
-    - _FoamTextureSpeedY: 0.06
-    - _FoamThreshold: 0.7
+    - _FoamCornerDiffusion: 10
+    - _FoamIntensity: 5
+    - _FoamLinesSpeed: 0.05
+    - _FoamSmoothness: 0.13
+    - _FoamTextureSpeedX: 0.01
+    - _FoamTextureSpeedY: 0.17
+    - _FoamThreshold: 0.43
     - _FogThreshold: 0.8
     - _FresnelBrightness: 1
     - _FresnelPower: 20
     - _FresnelPowerOpacity: 0.05
     - _Glossiness: 0.08
-    - _IntersectionSmoothness: 0.12
-    - _IntersectionSmoothnessBackGround: 4.73
-    - _IntersectionThreshold: 5.5
+    - _IntersectionSmoothness: 0.41
+    - _IntersectionSmoothnessBackGround: 2.26
+    - _IntersectionThreshold: 4
     - _IntersectionThresholdBackGround: 7
     - _IntersectionThresholdUnderWater: 12.5
     - _Metallic: 0.195
@@ -81,6 +97,8 @@ Material:
     - _ScrollXSpeed: 2.84
     - _ScrollYSpeed: 1.33
     - _Steepness: 0.159
+    - _SuckerRadius: 0
+    - _WaterSplashThreshold: 0.85
     - _Wavelength: 4.71
     - _intersectionSmoothness: 0.3
     m_Colors:
@@ -88,9 +106,11 @@ Material:
     - _ColorDeep: {r: 0, g: 0.2316458, b: 0.3773585, a: 1}
     - _ColorLight: {r: 0, g: 0.59243166, b: 0.6509434, a: 1}
     - _ColorLigth: {r: 0.6933962, g: 0.9231558, b: 1, a: 1}
-    - _Wave0: {r: -4.71, g: 14.25, b: 0.05, a: 5}
-    - _Wave1: {r: 1, g: 0, b: 0.03, a: 5}
-    - _Wave2: {r: 1, g: 2, b: 0.03, a: 5}
+    - _SuckerCenter: {r: 0, g: 0, b: 0, a: 0}
+    - _SuckerColor: {r: 0, g: 1, b: 0, a: 1}
+    - _Wave0: {r: -14.6032, g: -3.4628716, b: 0.05, a: 5}
+    - _Wave1: {r: 0.08628424, g: 0.9962716, b: 0, a: 5}
+    - _Wave2: {r: -1.906253, g: 1.1688365, b: 0, a: 5}
     - _WaveA: {r: 0.3, g: -0.51, b: 0.05, a: 20}
     - _WaveB: {r: 4.26, g: 9.4, b: 0.08, a: 7}
     - _WaveC: {r: 1, g: 1, b: 0, a: 10}

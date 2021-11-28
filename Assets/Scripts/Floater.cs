@@ -5,16 +5,18 @@ using UnityEngine;
 public class Floater : MonoBehaviour
 {
 
-    public Rigidbody rb;
+    Rigidbody rb;
     public float underwaterDrag = 1;
     public float underwaterAngularDrag = 0.5f;
     public float depthBeforeSubmerged = 1f;
     public float displacementAmount = 3f;
-    public int floaters;
+    int floatersCount;
+    public Transform[] floaters;
 
 
     void Start()
     {
+        floatersCount = floaters.Length;
         rb = GetComponent<Rigidbody>();
         if(rb) rb.useGravity = false;
     }
@@ -29,15 +31,25 @@ public class Floater : MonoBehaviour
         //}
         if (rb)
         {
-            rb.AddForceAtPosition(Physics.gravity / floaters, transform.position, ForceMode.Acceleration);
-            float waveHeight = WavesManager.instance.getHeight(0, transform.position);
-            if (transform.position.y < waveHeight)
+
+            for(int i=0; i<floatersCount; i++)
             {
-                rb.drag = Mathf.Lerp(rb.drag, underwaterDrag, 0.85f);
-                float displacementMultiplier = Mathf.Clamp01((waveHeight - transform.position.y) / depthBeforeSubmerged) * displacementAmount;
-                rb.AddForceAtPosition(new Vector3(0f, Mathf.Abs(Physics.gravity.y) * displacementMultiplier, 0f), transform.position, ForceMode.Acceleration);
-                rb.AddForce(displacementMultiplier * -rb.velocity * underwaterDrag * Time.fixedDeltaTime, ForceMode.VelocityChange);
-                rb.AddTorque(displacementMultiplier * -rb.velocity * underwaterAngularDrag * Time.fixedDeltaTime, ForceMode.VelocityChange);
+                Transform thisFloater = floaters[i];
+                rb.AddForceAtPosition(Physics.gravity / floatersCount, thisFloater.position, ForceMode.Acceleration); // Gravity
+                // float waveHeight = WavesManager.instance.getHeight(0, transform.position);
+                Vector3 waveHeight = WavesManager.instance.getHeight(0, thisFloater.position);
+                Vector2 waveSpeed = WavesManager.instance.waveSpeed(0);
+                if (thisFloater.position.y < waveHeight.y)
+                {
+                    float displacementMultiplier = Mathf.Clamp01((waveHeight.y - thisFloater.position.y) / depthBeforeSubmerged) * displacementAmount;
+                    Vector3 objToWave = waveHeight - thisFloater.position;
+                    float xForce = waveSpeed.x;
+                    float zForce = waveSpeed.y;
+                    rb.AddForceAtPosition(new Vector3(xForce, Mathf.Abs(Physics.gravity.y) * displacementMultiplier, zForce), thisFloater.position, ForceMode.Acceleration);
+                    rb.AddForce(displacementMultiplier * -rb.velocity * underwaterDrag * Time.fixedDeltaTime, ForceMode.VelocityChange);
+                    rb.AddTorque(displacementMultiplier * -rb.velocity * underwaterAngularDrag * Time.fixedDeltaTime, ForceMode.VelocityChange);
+                }
+
             }
         }
     }
